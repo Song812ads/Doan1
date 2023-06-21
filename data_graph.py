@@ -35,8 +35,8 @@ def gen_adj(slic_arr):
 		near_arr = [slic_arr[i][index] for index in sorted(indexs)]
 		for j in range(len(near_arr)-1):
 				start, end = near_arr[j], near_arr[j+1]
-				adj[min(start, 255), min(end, 255)] = 1.0
-				adj[min(end, 255), min(start, 255)] = 1.0
+				adj[min(start, len(n_superpixel)-1), min(end, len(n_superpixel)-1)] = 1.0
+				adj[min(end, len(n_superpixel)-1), min(start, len(n_superpixel)-1)] = 1.0
     
 	for i in range(image_size[1]):
 		_, indexs = np.unique(slic_arr[:,i], return_index=True)
@@ -44,8 +44,8 @@ def gen_adj(slic_arr):
 
 		for j in range(len(near_arr)-1):
 				start, end = near_arr[j], near_arr[j+1]
-				adj[min(start, 255), min(end, 255)] = 1.0
-				adj[min(end, 255), min(start, 255)] = 1.0
+				adj[min(start, len(n_superpixel)-1), min(end, len(n_superpixel)-1)] = 1.0
+				adj[min(end, len(n_superpixel)-1), min(start, len(n_superpixel)-1)] = 1.0
 	
 	# node_position = get_node_position(slic_arr, len(n_superpixel))
 	# show_graph_with_labels(adj, node_position)
@@ -96,3 +96,31 @@ def show_graph_with_labels(adj, slic_arr):
 	nx.draw_networkx_labels(G, pos)
 	nx.draw_networkx_edges(G, pos)
 	plt.show()
+
+
+
+def graph_node(image):
+	slic_arr = slic(image, n_segments=200,  sigma=5)
+	slic_arr = np.array(slic_arr)
+	#Node: 
+	node_position = {}
+	n = len(np.unique(slic_arr))
+	num_bins = 8
+	r_mean = np.zeros(n)
+	g_mean = np.zeros(n)
+	b_mean = np.zeros(n)
+	r_dev = np.zeros(n)
+	g_dev = np.zeros(n)
+	b_dev = np.zeros(n)
+	for i in range(1,n+1,1):
+		rows, cols = np.where(slic_arr==i)
+		if rows.size > 0 and cols.size > 0:
+			y_center = (rows.max() + rows.min()) / 2
+			x_center = (cols.max() + cols.min()) / 2
+			node_position[i] = (x_center.astype('int32'), y_center.astype('int32'))
+		r_mean = np.mean(image[:,:,0][rows,cols])
+		g_mean = np.mean(image[:,:,1][rows,cols])
+		b_mean = np.mean(image[:,:,2][rows,cols])
+		r_dev = np.std(image[:,:,0][rows,cols])
+		g_dev = np.std(image[:,:,1][rows,cols])
+		b_dev = np.std(image[:,:,2][rows,cols])
